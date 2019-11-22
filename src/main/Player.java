@@ -278,10 +278,13 @@ public class Player {
 				
 				case "bow":
 					setBow(weapons[i]);
+					break;
 				case "pistol":
 					setPistol(weapons[i]);
+					break;
 				case "sword":
 					setSword(weapons[i]);
+					break;
 				}
 				
 				System.out.println(getName() + " gets the " + weapons[i].getType() + "!");
@@ -301,7 +304,7 @@ public class Player {
 					if(getSword() == null) {
 						setScore(getScore() + traps[i].getPoints());
 						System.out.println(getName() + " falls in a trap(rope) for " + traps[i].getPoints() + " points.");
-					break;
+						break;
 					}else {
 						System.out.println(getName() + " falls in a trap(rope) but has a sword!");
 						traps[i].setX(0);
@@ -312,10 +315,12 @@ public class Player {
 					if(getBow() == null) {
 						setScore(getScore() + traps[i].getPoints());
 						System.out.println(getName() + " falls in a trap(animal) for " + traps[i].getPoints() + " points.");
+						break;
 					}else {
 						System.out.println(getName() + " falls in a trap(animal) but has a bow!");
 						traps[i].setX(0);
 						traps[i].setY(0);
+						break;
 					}
 				
 				}
