@@ -80,7 +80,7 @@ public class Game {
 			System.out.println("ROUND " + game.getRound());
 			
 			//print table
-			String[][] rep = board.getStringRepresentation();
+			String[][] rep = board.getStringRepresentation(heuristicPlayer, randomPlayer);
 			for (int i=0; i<board.getN(); i++) {
 				for(int j=0; j<board.getM(); j++) {
 					System.out.print("[" + rep[i][j] + "]");
@@ -120,7 +120,7 @@ public class Game {
 		System.out.println(heuristicPlayer.getName() + " score: " + heuristicPlayer.getScore());
 		System.out.println(randomPlayer.getName() + " score: " + randomPlayer.getScore());
 		//print winner
-		if(winner == null) {
+		if(winner == "") {
 			if(heuristicPlayer.getScore() > randomPlayer.getScore()) {
 				winner = heuristicPlayer.getName();
 			}else if(heuristicPlayer.getScore() < randomPlayer.getScore()) {

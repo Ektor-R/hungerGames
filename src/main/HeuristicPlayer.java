@@ -7,7 +7,8 @@ import items.Food;
 import items.Trap;
 import items.Weapon;
 
-//class HeuristicPlayer
+/*class HeuristicPlayer: extends the Player class, evaluates all of the available moves
+ * and chooses the best one*/
 
 public class HeuristicPlayer extends Player {
 	
@@ -48,16 +49,15 @@ public class HeuristicPlayer extends Player {
 		r = newR;
 	}
 
-	
-	//calculates the distance between the 2 players
-	public float playerDistance(Player p) {
+	//calculates distance between two tiles given x,y
+	public static float tileDistance(int x1, int y1, int x2, int y2) {
 		//local variables
 		float distance = 0;
-		int dx = getX() - p.getX(); 
-		int dy = getY() - p.getY();
+		int dx = x1 - x2; 
+		int dy = y1 - y2;
 		
 		//skipping 0 for x
-		if(getX() * p.getX() < 0) {
+		if(x1 * x2 < 0) {
 			if(dx > 0) {
 				dx--;
 			}else {
@@ -66,7 +66,7 @@ public class HeuristicPlayer extends Player {
 		}
 		
 		//skipping 0 for y
-		if(getY() * p.getY() < 0) {
+		if(y1 * y2 < 0) {
 			if(dy > 0) {
 				dy--;
 			}else {
@@ -75,8 +75,16 @@ public class HeuristicPlayer extends Player {
 		}
 		
 		//calculating distance
-		//distance = (float)Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-		distance = Math.max(Math.abs(dx), Math.abs(dy));
+		distance = Math.max(Math.abs(dx), Math.abs(dy));		
+		
+		return distance;
+	}
+
+	
+	//calculates the distance between the 2 players
+	public float playerDistance(Player p) {
+		
+		float distance = tileDistance(getX(), getY(), p.getX(), p.getY());
 		
 		if(distance > getR()) {
 			distance = -1;
@@ -85,14 +93,16 @@ public class HeuristicPlayer extends Player {
 		return distance;
 	}
 	
+	//decides the strategy and importance of each available move
+	//P: pistol, B: bow, S: sword, T: trap, F: food, K: kill (enemy player)
 	public double f(int P, int B, int S, int T, int F, int K) {
 		double evaluation;
 		float gainPistol = 0.4f;
 		float gainBow = 0.2f;
 		float gainSword = 0.1f;
 		float avoidTraps = 0.1f;
-		float gainPoints = 0.2f;
-		float forceKill = 0f;
+		float gainPoints = 0.3f;
+		float forceKill = -0.3f;
 		
 		if(getPistol() != null) {
 			gainPistol = 0;
@@ -110,12 +120,14 @@ public class HeuristicPlayer extends Player {
 		return evaluation;
 	}
 	
+	//evaluates given move
 	public double evaluate(int dice, Player p) {
 		//local variables
 		double evaluation = 0;
 		int x = 0, y = 0;
 		Board board = getBoard();
 		boolean ok = true;
+		int [] pos = {getX(), getY()}; //initial position
 		
 		switch(dice) {
 		
@@ -276,6 +288,7 @@ public class HeuristicPlayer extends Player {
 						evaluation += f(0, 0, 10, 0, 0, 0);
 						break;
 					}
+					break;
 				}
 			}
 			
@@ -296,6 +309,7 @@ public class HeuristicPlayer extends Player {
 							break;
 						}
 					}
+					break;
 				}
 			}
 			
@@ -304,50 +318,32 @@ public class HeuristicPlayer extends Player {
 			for(int i=0; i<board.getF(); i++) {
 				if((food[i].getX() == x) && (food[i].getY() == y)) {
 					evaluation += f(0, 0, 0, 0, food[i].getPoints(), 0);
+					break;
 				}
 			}
 			
-			if(getPistol()!= null) {
+			if(playerDistance(p) != -1) {
+				setX(x);
+				setY(y);
 				if(playerDistance(p) != -1) {
 					evaluation += f(0, 0, 0, 0, 0, 10 + getR() - (int)playerDistance(p));
 				}
+				setX(pos[0]);
+				setY(pos[1]);
 			}
+			
+			
 		}else {
 			evaluation = -10;
 		}
-		
 		return evaluation;
 	}
 	
-	//TODO
+	//checks if player1 can kill player2
 	public static boolean kill(Player player1, Player player2, float d) {
 		//local variables
 		boolean result;
-		float distance = 0;
-		int dx = player1.getX() - player2.getX(); 
-		int dy = player1.getY() - player2.getY();
-				
-		//skipping 0 for x
-		if(player1.getX() * player2.getX() < 0) {
-			if(dx > 0) {
-				dx--;
-			}else {
-				dx++;
-			}
-		}
-				
-		//skipping 0 for y
-		if(player1.getY() * player2.getY() < 0) {
-			if(dy > 0) {
-				dy--;
-			}else {
-				dy++;
-			}
-		}
-				
-		//calculating distance
-		//distance = (float)Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-		distance = Math.max(Math.abs(dx), Math.abs(dy));
+		float distance = tileDistance(player1.getX(), player1.getY(), player2.getX(), player2.getY());
 				
 		if(distance < d && player1.getPistol() != null) {
 			result = true;
@@ -358,7 +354,7 @@ public class HeuristicPlayer extends Player {
 		return result;
 	}
 	
-	//TODO
+	//chooses the best move and moves the player
 	public int[] move(Player p) {
 		//local variables
 		int[] move = new int[2];
@@ -509,6 +505,7 @@ public class HeuristicPlayer extends Player {
 				info[2]++;
 				weapons[i].setX(0);
 				weapons[i].setY(0);
+				break;
 			}
 		}
 				
@@ -544,6 +541,7 @@ public class HeuristicPlayer extends Player {
 						
 				}
 				info[3]++;
+				break;
 			}
 		}
 				
@@ -557,6 +555,7 @@ public class HeuristicPlayer extends Player {
 				info[4]++;
 				food[i].setX(0);
 				food[i].setY(0);
+				break;
 			}
 		}
 		
@@ -569,7 +568,7 @@ public class HeuristicPlayer extends Player {
 		return move;
 	}
 	
-	
+	//prints information about the move of HeuristicPlayer
 	public void statistics(int round) {
 		ArrayList<Integer[]> path = getPath();
 		Integer[] stats = path.get(round - 1);

@@ -312,7 +312,7 @@ public class Board {
 	}
 	
 	//table representing the game's board 
-	public String[][] getStringRepresentation(){
+	public String[][] getStringRepresentation(Player hp, Player rp){
 		//local variables
 		String[][] representation = new String[getN()][getM()];
 		int tileX, tileY;
@@ -327,6 +327,7 @@ public class Board {
 				tileY = -getN()/2 + i + 1;
 			}
 			
+			outerloop:
 			//setting values horizontally
 			for(int j=0; j<getM(); j++) {
 				
@@ -339,16 +340,27 @@ public class Board {
 				//default value for empty tile
 				representation[i][j] ="___";
 				
+				//checking for players
+				if(hp.getX() == tileX && hp.getY() == tileY) {
+					representation[i][j] = "HP ";
+					continue;
+				}else if(rp.getX() == tileX && rp.getY() == tileY) {
+					representation[i][j] = "RP ";
+					continue;
+				}
+				
 				//checking for weapons
 				for(int z=0; z<getW(); z++) {
 					if ((weapons[z].getX() == tileX) && (weapons[z].getY() == tileY)) {
 						representation[i][j] = "W" + weapons[z].getPlayerId() + weapons[z].getId();
+						continue outerloop;
 					}
 				}
 				//checking for traps
 				for(int z=0; z<getT(); z++) {
 					if((traps[z].getX() == tileX) && (traps[z].getY() == tileY)){
 						representation[i][j] = "T" + traps[z].getId() + " ";
+						continue outerloop;
 					}
 				}
 				//checking for food
@@ -357,8 +369,10 @@ public class Board {
 						//this if is for better presentation
 						if(food[z].getId()<10) {
 							representation[i][j] = "F" + food[z].getId() + " ";
+							continue outerloop;
 						}else {
 							representation[i][j] = "F" + food[z].getId();
+							continue outerloop;
 						}
 					}
 				}
