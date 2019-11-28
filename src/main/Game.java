@@ -39,6 +39,7 @@ public class Game {
 	
 	//main
 	public static void main(String[] args) {
+		String winner = "";
 		
 		int[][] weaponAreaLimits = {{-2, -2}, {2, -2}, {2, 2}, {-2, 2}};
 		int[][] foodAreaLimits = {{-3, -3}, {3, -3}, {3, 3}, {-3, 3}};
@@ -51,24 +52,26 @@ public class Game {
 		board.setTrapAreaLimits(trapAreaLimits);
 		board.createBoard();
 		
-		//defining player1
-		Player p1=new Player();
-		p1.setId(1);
-		p1.setName("Player1");
-		p1.setBoard(board);
-		p1.setScore(0);
-		p1.setX(-board.getM()/2);
-		p1.setY(-board.getN()/2);
+		HeuristicPlayer.setR(3);
+		
+		//defining Heuristic Player
+		HeuristicPlayer heuristicPlayer= new HeuristicPlayer();
+		heuristicPlayer.setId(1);
+		heuristicPlayer.setName("Heuristic Player");
+		heuristicPlayer.setBoard(board);
+		heuristicPlayer.setScore(0);
+		heuristicPlayer.setX(-board.getM()/2);
+		heuristicPlayer.setY(-board.getN()/2);
 		
 		
-		//defining player2
-		Player p2=new Player();
-		p2.setId(2);
-		p2.setName("Player2");
-		p2.setBoard(board);
-		p2.setScore(0);
-		p2.setX(board.getM()/2);
-		p2.setY(board.getN()/2);
+		//defining Random Player
+		Player randomPlayer=new Player();
+		randomPlayer.setId(2);
+		randomPlayer.setName("Random Player");
+		randomPlayer.setBoard(board);
+		randomPlayer.setScore(0);
+		randomPlayer.setX(board.getM()/2);
+		randomPlayer.setY(board.getN()/2);
 		
 		
 		//game
@@ -86,22 +89,47 @@ public class Game {
 			}
 			
 			//player move
-			p1.move();
-			p2.move();			  
+			heuristicPlayer.move(randomPlayer);
+			if(HeuristicPlayer.kill(heuristicPlayer, randomPlayer, 2)) {
+				System.out.println(heuristicPlayer.getName() + " killed " + randomPlayer.getName() + "!");
+				winner = heuristicPlayer.getName();
+				break;
+			}
+			randomPlayer.move();
+			if(HeuristicPlayer.kill(randomPlayer, heuristicPlayer, 2)) {
+				System.out.println(randomPlayer.getName() + " killed " + heuristicPlayer.getName() + "!");
+				winner = randomPlayer.getName();
+				break;
+			}
+			
+			//statistics
+			heuristicPlayer.statistics(game.getRound());
 			
 			//resizing board every 3 rounds
 			if(game.getRound()%3 == 0) {
-				board.resizeBoard(p1, p2);
+				board.resizeBoard(heuristicPlayer, randomPlayer);
 			}
 			
 			//next round
 			game.setRound(game.getRound() + 1);
+			System.out.println("");
 		}while(board.getN()>4 && board.getM()>4);
 		
+		System.out.println("\nRESULT:");
 		//print score
-		System.out.println("Player 1 score: " + p1.getScore());
-		System.out.println("Player 2 score: " + p2.getScore());
-		
+		System.out.println(heuristicPlayer.getName() + " score: " + heuristicPlayer.getScore());
+		System.out.println(randomPlayer.getName() + " score: " + randomPlayer.getScore());
+		//print winner
+		if(winner == null) {
+			if(heuristicPlayer.getScore() > randomPlayer.getScore()) {
+				winner = heuristicPlayer.getName();
+			}else if(heuristicPlayer.getScore() < randomPlayer.getScore()) {
+				winner = randomPlayer.getName();
+			}else {
+				winner = "Draw!";
+			}
+		}
+		System.out.println("Winner: " + winner);
 	}
 
 }
