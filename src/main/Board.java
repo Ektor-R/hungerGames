@@ -35,11 +35,33 @@ public class Board {
 	}
 	
 	public Board(Board b) {
-		this.N = b.N;
-		this.M = b.M;
-		this.W = b.W;
-		this.F = b.F;
-		this.T = b.T;
+		N = b.N;
+		M = b.M;
+		W = b.W;
+		F = b.F;
+		T = b.T;
+		weaponAreaLimits = new int[4][2];
+		foodAreaLimits = new int[4][2];
+		trapAreaLimits = new int[4][2];
+		weapons = new Weapon[W];
+		food = new Food[F];
+		traps = new Trap[T];
+		for(int i=0; i<4; i++) {
+			for(int j=0; j<2; j++) {
+				weaponAreaLimits[i][j] = b.weaponAreaLimits[i][j];
+				foodAreaLimits[i][j] = b.foodAreaLimits[i][j];
+				trapAreaLimits[i][j] = b.trapAreaLimits[i][j];
+			}
+		}
+		for(int i=0; i<W; i++) {
+			weapons[i] = new Weapon(b.weapons[i]);
+		}
+		for(int i=0; i<F; i++) {
+			food[i] = new Food(b.food[i]);
+		}
+		for(int i=0; i<T; i++) {
+			traps[i] = new Trap(b.traps[i]);
+		}
 	}
 	
 	//getters
@@ -342,7 +364,7 @@ public class Board {
 				
 				//checking for players
 				if(hp.getX() == tileX && hp.getY() == tileY) {
-					representation[i][j] = "HP ";
+					representation[i][j] = "MMP";
 					continue;
 				}else if(rp.getX() == tileX && rp.getY() == tileY) {
 					representation[i][j] = "RP ";

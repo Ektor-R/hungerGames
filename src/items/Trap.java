@@ -27,11 +27,11 @@ public class Trap {
 		}
 		
 		public Trap(Trap t) {
-			this.id = t.id;
-			this.x = t.x;
-			this.y = t.y;
-			this.type = t.type;
-			this.points = t.points;
+			id = t.id;
+			x = t.x;
+			y = t.y;
+			type = t.type;
+			points = t.points;
 		}
 		
 		//getters

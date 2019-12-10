@@ -25,10 +25,10 @@ public class Food {
 		}
 		
 		public Food(Food f) {
-			this.id = f.id;
-			this.x = f.x;
-			this.y = f.y;
-			this.points = f.points;
+			id = f.id;
+			x = f.x;
+			y = f.y;
+			points = f.points;
 		}
 		
 		//getters

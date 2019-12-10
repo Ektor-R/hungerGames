@@ -52,16 +52,14 @@ public class Game {
 		board.setTrapAreaLimits(trapAreaLimits);
 		board.createBoard();
 		
-		HeuristicPlayer.setR(3);
-		
-		//defining Heuristic Player
-		HeuristicPlayer heuristicPlayer= new HeuristicPlayer();
-		heuristicPlayer.setId(1);
-		heuristicPlayer.setName("Heuristic Player");
-		heuristicPlayer.setBoard(board);
-		heuristicPlayer.setScore(0);
-		heuristicPlayer.setX(-board.getM()/2);
-		heuristicPlayer.setY(-board.getN()/2);
+		//defining Min Max Player
+		MinMaxPlayer minMaxPlayer= new MinMaxPlayer();
+		minMaxPlayer.setId(1);
+		minMaxPlayer.setName("Min Max Player");
+		minMaxPlayer.setBoard(board);
+		minMaxPlayer.setScore(15);
+		minMaxPlayer.setX(board.getM()/2);
+		minMaxPlayer.setY(board.getN()/2);
 		
 		
 		//defining Random Player
@@ -69,7 +67,7 @@ public class Game {
 		randomPlayer.setId(2);
 		randomPlayer.setName("Random Player");
 		randomPlayer.setBoard(board);
-		randomPlayer.setScore(0);
+		randomPlayer.setScore(15);
 		randomPlayer.setX(board.getM()/2);
 		randomPlayer.setY(board.getN()/2);
 		
@@ -80,7 +78,7 @@ public class Game {
 			System.out.println("ROUND " + game.getRound());
 			
 			//print table
-			String[][] rep = board.getStringRepresentation(heuristicPlayer, randomPlayer);
+			String[][] rep = board.getStringRepresentation(minMaxPlayer, randomPlayer);
 			for (int i=0; i<board.getN(); i++) {
 				for(int j=0; j<board.getM(); j++) {
 					System.out.print("[" + rep[i][j] + "]");
@@ -89,25 +87,30 @@ public class Game {
 			}
 			
 			//player move
-			heuristicPlayer.move(randomPlayer);
-			if(HeuristicPlayer.kill(heuristicPlayer, randomPlayer, 2)) {
-				System.out.println(heuristicPlayer.getName() + " killed " + randomPlayer.getName() + "!");
-				winner = heuristicPlayer.getName();
+			minMaxPlayer.move();
+			if(minMaxPlayer.getScore() < 0) {
+				System.out.println(minMaxPlayer.getName() + " died!");
+				winner = randomPlayer.getName();
+				break;
+			}else if(HeuristicPlayer.kill(minMaxPlayer, randomPlayer, 2)) {
+				System.out.println(minMaxPlayer.getName() + " killed " + randomPlayer.getName() + "!");
+				winner = minMaxPlayer.getName();
 				break;
 			}
 			randomPlayer.move();
-			if(HeuristicPlayer.kill(randomPlayer, heuristicPlayer, 2)) {
-				System.out.println(randomPlayer.getName() + " killed " + heuristicPlayer.getName() + "!");
+			if(randomPlayer.getScore() < 0) {
+				System.out.println(randomPlayer.getName() + " died!");
+				winner = minMaxPlayer.getName();
+				break;
+			}else if(HeuristicPlayer.kill(randomPlayer, minMaxPlayer, 2)) {
+				System.out.println(randomPlayer.getName() + " killed " + minMaxPlayer.getName() + "!");
 				winner = randomPlayer.getName();
 				break;
 			}
 			
-			//statistics
-			heuristicPlayer.statistics(game.getRound());
-			
 			//resizing board every 3 rounds
 			if(game.getRound()%3 == 0) {
-				board.resizeBoard(heuristicPlayer, randomPlayer);
+				board.resizeBoard(minMaxPlayer, randomPlayer);
 			}
 			
 			//next round
@@ -117,13 +120,13 @@ public class Game {
 		
 		System.out.println("\nRESULT:");
 		//print score
-		System.out.println(heuristicPlayer.getName() + " score: " + heuristicPlayer.getScore());
+		System.out.println(minMaxPlayer.getName() + " score: " + minMaxPlayer.getScore());
 		System.out.println(randomPlayer.getName() + " score: " + randomPlayer.getScore());
 		//print winner
 		if(winner == "") {
-			if(heuristicPlayer.getScore() > randomPlayer.getScore()) {
-				winner = heuristicPlayer.getName();
-			}else if(heuristicPlayer.getScore() < randomPlayer.getScore()) {
+			if(minMaxPlayer.getScore() > randomPlayer.getScore()) {
+				winner = minMaxPlayer.getName();
+			}else if(minMaxPlayer.getScore() < randomPlayer.getScore()) {
 				winner = randomPlayer.getName();
 			}else {
 				winner = "Draw!";

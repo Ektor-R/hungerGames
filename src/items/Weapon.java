@@ -26,11 +26,11 @@ public class Weapon {
 	}
 	
 	public Weapon(Weapon w) {
-		this.id = w.getId();
-		this.x = w.getX();
-		this.y = w.getY();
-		this.playerId = w.getPlayerId();
-		this.type = w.getType();
+		id = w.getId();
+		x = w.getX();
+		y = w.getY();
+		playerId = w.getPlayerId();
+		type = w.getType();
 	}
 	
 	//getters
