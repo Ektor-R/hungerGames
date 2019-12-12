@@ -15,6 +15,11 @@ public class Weapon {
 	//constructors
 	
 	public Weapon() {
+		id = -1;
+		x = 0;
+		y = 0;
+		playerId = -1;
+		type = null;
 	}
 	
 	public Weapon(int id, int x, int y, int playerId, String type) {

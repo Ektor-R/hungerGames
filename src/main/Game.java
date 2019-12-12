@@ -39,7 +39,7 @@ public class Game {
 	
 	//main
 	public static void main(String[] args) {
-		String winner = "";
+		String winner = null;
 		
 		int[][] weaponAreaLimits = {{-2, -2}, {2, -2}, {2, 2}, {-2, 2}};
 		int[][] foodAreaLimits = {{-3, -3}, {3, -3}, {3, 3}, {-3, 3}};
@@ -52,10 +52,10 @@ public class Game {
 		board.setTrapAreaLimits(trapAreaLimits);
 		board.createBoard();
 		
-		//defining Min Max Player
+		//defining MinMax Player
 		MinMaxPlayer minMaxPlayer= new MinMaxPlayer();
 		minMaxPlayer.setId(1);
-		minMaxPlayer.setName("Min Max Player");
+		minMaxPlayer.setName("MinMax Player");
 		minMaxPlayer.setBoard(board);
 		minMaxPlayer.setScore(15);
 		minMaxPlayer.setX(board.getM()/2);
@@ -87,7 +87,7 @@ public class Game {
 			}
 			
 			//player move
-			minMaxPlayer.move();
+			minMaxPlayer.getNextMove(minMaxPlayer.getX(), minMaxPlayer.getY(), randomPlayer.getX(), randomPlayer.getY(), randomPlayer);
 			if(minMaxPlayer.getScore() < 0) {
 				System.out.println(minMaxPlayer.getName() + " died!");
 				winner = randomPlayer.getName();
@@ -123,7 +123,7 @@ public class Game {
 		System.out.println(minMaxPlayer.getName() + " score: " + minMaxPlayer.getScore());
 		System.out.println(randomPlayer.getName() + " score: " + randomPlayer.getScore());
 		//print winner
-		if(winner == "") {
+		if(winner == null) {
 			if(minMaxPlayer.getScore() > randomPlayer.getScore()) {
 				winner = minMaxPlayer.getName();
 			}else if(minMaxPlayer.getScore() < randomPlayer.getScore()) {

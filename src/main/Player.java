@@ -22,7 +22,15 @@ public class Player {
 	//constructors
 	
 	public Player() {
-		
+		id = -1;
+		name = null;
+		board = null;
+		score = 0;
+		x = 0;
+		y = 0;
+		bow = null;
+		pistol = null;
+		sword = null;
 	}
 	
 	public Player(int id, String name, Board board, int score, int x, int y, 

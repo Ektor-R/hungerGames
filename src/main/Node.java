@@ -2,19 +2,26 @@ package main;
 
 import java.util.ArrayList;
 
+/*class Node: creates node objects for the MinMaxAlgorithm tree*/
+
 public class Node {
     
     //local variables
     private Node parent;
-    private ArrayList<Node> children = new ArrayList<Node>();
+    private ArrayList<Node> children;
     private int nodeDepth;
-    private int[] nodeMove = new int[3];
+    private int[] nodeMove;
     private Board nodeBoard;
     private double nodeEvaluation;
 
     //constructors 
     public Node(){
-
+    	parent = null;
+    	children = new ArrayList<Node>();
+    	nodeDepth = 0;
+    	nodeMove = new int[3];
+    	nodeBoard = null;
+    	nodeEvaluation = 0;
     }
 
     //getters

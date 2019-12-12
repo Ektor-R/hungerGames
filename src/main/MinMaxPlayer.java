@@ -1,21 +1,23 @@
 package main;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
 import items.Food;
 import items.Trap;
 import items.Weapon;
 
+/*Class MinMaxPlayer: extends Player class, evaluates all available moves
+ *through a tree with a depth of 2 moves(player's and then opponent's moves)
+ *and makes the best move */
+
 public class MinMaxPlayer extends Player {
 
     //local variables
-    ArrayList<Integer[]> path = new ArrayList<Integer[]>();
+    ArrayList<Integer[]> path;
 	
 	//constructors
 	public MinMaxPlayer() {
-		
+		path = new ArrayList<Integer[]>();
 	}
 	public MinMaxPlayer(ArrayList<Integer[]> path) {
 		this.path = path;
@@ -230,23 +232,62 @@ public class MinMaxPlayer extends Player {
 
 	//decides the strategy and importance of each available move
 	//P: pistol, B: bow, S: sword, T: trap, F: food, K: kill (enemy player)
-	public double f(int P, int B, int S, int T, int F, int K) {
+	public double f(int P, int B, int S, int T, int F, float K, Player opponent) {
 		double evaluation;
 		float gainPistol = 0.4f;
 		float gainBow = 0.2f;
 		float gainSword = 0.1f;
 		float avoidTraps = 0.1f;
 		float gainPoints = 0.3f;
-		float forceKill = -0.3f;
+		float forceKill = 0f;
 		
+		if(getPistol() == null && opponent.getPistol() != null) {
+			if(playerDistance(opponent) < 3) {
+				forceKill = -1f;
+			}
+		}
 		if(getPistol() != null) {
 			gainPistol = 0;
 			forceKill = 0.4f;
+			if(opponent.getPistol() != null) {
+				if(playerDistance(opponent) == 2) {
+					forceKill = -2f;
+				}else if(playerDistance(opponent) == 1 || playerDistance(opponent) == 3) {
+					forceKill = 2f;
+				}
+			}
 		}
 		if(getBow() != null) {
 			gainBow = 0;
 		}
 		if(getSword() != null) {
+			gainSword = 0;
+		}
+		
+		evaluation = gainPistol*P + gainBow*B + gainSword*S + avoidTraps*T + gainPoints*F + forceKill*K;
+		
+		return evaluation;
+	}
+	
+	//the strategy the player thinks the opponent will follow
+	//P: pistol, B: bow, S: sword, T: trap, F: food, K: kill (enemy player)
+	public double fOp(int P, int B, int S, int T, int F, float K, Player opponent) {
+		double evaluation;
+		float gainPistol = 0.4f;
+		float gainBow = 0.2f;
+		float gainSword = 0.1f;
+		float avoidTraps = 0.1f;
+		float gainPoints = 0.3f;
+		float forceKill = 0f;
+		
+		if(opponent.getPistol() != null) {
+			gainPistol = 0;
+			forceKill = 1f;
+		}
+		if(opponent.getBow() != null) {
+			gainBow = 0;
+		}
+		if(opponent.getSword() != null) {
 			gainSword = 0;
 		}
 		
@@ -260,9 +301,9 @@ public class MinMaxPlayer extends Player {
 		//local variables
 		double evaluation = 0;
 		Board board = getBoard();
-		int [] pos = {x, y}; //initial position
+		int[] pos = {x, y}; //initial position
 		
-		//move player
+		//simulate move
 		int[] newPos = newPosition(dice, x, y);
 		x = newPos[0];
 		y = newPos[1];
@@ -275,78 +316,138 @@ public class MinMaxPlayer extends Player {
 					(weapons[i].getY() == y) && 
 					(weapons[i].getPlayerId() == getId())) {
 				switch(weapons[i].getType()) {
-				
 				case "bow":
-					evaluation += f(0, 10, 0, 0, 0, 0);
+					evaluation += f(0, 10, 0, 0, 0, 0, opponent);
 					break;
 				case "pistol":
-					evaluation += f(10, 0, 0, 0, 0, 0);
+					evaluation += f(10, 0, 0, 0, 0, 0, opponent);
 					break;
 				case "sword":
-					evaluation += f(0, 0, 10, 0, 0, 0);
+					evaluation += f(0, 0, 10, 0, 0, 0, opponent);
 					break;
 				}
 				break;
 			}
 		}
-		
 		//check for traps
 		Trap[] traps = board.getTraps();
 		for(int i=0; i<board.getT(); i++) {
 			if((traps[i].getX() == x) && (traps[i].getY() == y)) {
-				
 				switch(traps[i].getType()) {
 				case "rope":
 					if(getSword() == null) {
-						evaluation += f(0, 0, 0, traps[i].getPoints(), 0, 0);
+						evaluation += f(0, 0, 0, traps[i].getPoints(), 0, 0, opponent);
 						break;
 					}
 				case "animal":
 					if(getBow() == null) {
-						evaluation += f(0, 0, 0, traps[i].getPoints(), 0, 0);
+						evaluation += f(0, 0, 0, traps[i].getPoints(), 0, 0, opponent);
 						break;
 					}
 				}
 				break;
 			}
 		}
-		
 		//check for food
 		Food[] food = board.getFood();
 		for(int i=0; i<board.getF(); i++) {
 			if((food[i].getX() == x) && (food[i].getY() == y)) {
-				evaluation += f(0, 0, 0, 0, food[i].getPoints(), 0);
+				evaluation += f(0, 0, 0, 0, food[i].getPoints(), 0, opponent);
 				break;
 			}
 		}
-		
 		//check distance to opponent
 		setX(x);
 		setY(y);
-		if(playerDistance(opponent) != -1) {
-			evaluation += f(0, 0, 0, 0, 0, (10/board.getN()) * (board.getN() - (int)playerDistance(opponent)) );
-		}
+		evaluation += f(0, 0, 0, 0, 0, ((float)10/board.getN()) * (board.getN() - (int)playerDistance(opponent)), opponent);
 		setX(pos[0]);
 		setY(pos[1]);
-			
+		
 		return evaluation;
 	}
 	
+	//evaluates opponent's move
+	public double evaluateOpponent(int dice, int x, int y, int xOp, int yOp, Player opponent, Board board) {
+		//local variables
+		double evaluation = 0;
+		
+		//simulate move
+		int[] newPos = newPosition(dice, xOp, yOp);
+		xOp = newPos[0];
+		yOp = newPos[1];
+		
+		//check for weapons
+		Weapon[] weapons = board.getWeapons();
+		for(int i=0; i<board.getW(); i++) {
+			if(
+					(weapons[i].getX() == xOp) && 
+					(weapons[i].getY() == yOp) && 
+					(weapons[i].getPlayerId() == opponent.getId())) {
+				switch(weapons[i].getType()) {
+				case "bow":
+					evaluation += fOp(0, 10, 0, 0, 0, 0, opponent);
+					break;
+				case "pistol":
+					evaluation += fOp(10, 0, 0, 0, 0, 0, opponent);
+					break;
+				case "sword":
+					evaluation += fOp(0, 0, 10, 0, 0, 0, opponent);
+					break;
+				}
+				break;
+			}
+		}
+		//check for traps
+		Trap[] traps = board.getTraps();
+		for(int i=0; i<board.getT(); i++) {
+			if((traps[i].getX() == xOp) && (traps[i].getY() == yOp)) {
+				switch(traps[i].getType()) {
+				case "rope":
+					if(opponent.getSword() == null) {
+						evaluation += fOp(0, 0, 0, traps[i].getPoints(), 0, 0, opponent);
+						break;
+					}
+				case "animal":
+					if(opponent.getBow() == null) {
+						evaluation += fOp(0, 0, 0, traps[i].getPoints(), 0, 0, opponent);
+						break;
+					}
+				}
+				break;
+			}
+		}
+		//check for food
+		Food[] food = board.getFood();
+		for(int i=0; i<board.getF(); i++) {
+			if((food[i].getX() == xOp) && (food[i].getY() == yOp)) {
+				evaluation += fOp(0, 0, 0, 0, food[i].getPoints(), 0, opponent);
+				break;
+			}
+		}
+		//check distance to opponent
+		evaluation += fOp(0, 0, 0, 0, 0, ((float)10/board.getN()) * (board.getN() - (int)tileDistance(x, y, xOp, yOp)), opponent);
+		
+		return evaluation;
+	}
+	
+	//MinMax Algorithm
 	int chooseMinMaxMove(Node root) {
+		//local variables
 		ArrayList<Node> rootChildren = root.getChildren();
 		Node rootChild;
 		ArrayList<Node> nodeChildren = new ArrayList<Node>();
 		Node nodeChild;
-		double min = -10, max = -10;
-		int[] nodeMove;
+		double min, max = -100;
+		int[] nodeMove = new int[3];
 		ArrayList<Integer> bestMove = new ArrayList<Integer>();
 		
-		//depth 2
+		//depth 1
 		for (int i=0; i<rootChildren.size(); i++) {
 			rootChild = rootChildren.get(i);
+			nodeMove = rootChild.getNodeMove();
+			//depth 2
 			nodeChildren = rootChild.getChildren();
-			
-			//depth 3
+			min = 100;
 			for(int j=0; j<nodeChildren.size(); j++) {
 				nodeChild = nodeChildren.get(j);
 				if(nodeChild.getNodeEvaluation() < min) {
@@ -354,7 +455,6 @@ public class MinMaxPlayer extends Player {
 				}
 			}
 			rootChild.setNodeEvaluation(min);
-			nodeMove = rootChild.getNodeMove();
 			if(rootChild.getNodeEvaluation() > max) {
 				max = rootChild.getNodeEvaluation();
 				bestMove.clear();
@@ -367,18 +467,20 @@ public class MinMaxPlayer extends Player {
 		return move;
 	}
 	
+	//moves the player
 	int[] getNextMove(int x, int y, int xOp, int yOp, Player opponent) {
-		int[] bestMove = new int [3];
-		Node root = new Node();
 		Board board = getBoard();
-		root.setNodeBoard(board);
 		ArrayList<Integer[]> path = getPath();
 		Integer[] info = {0 , 0, 0, 0, 0}; //0:dice 1:score 2:weapons 3:trap 4:food
+		int[] bestMove = new int [3];
+		
+		Node root = new Node();
+		root.setNodeBoard(board);
 		
 		createMySubtree(root, 1, x, y, xOp, yOp, opponent);
 		bestMove[2] = chooseMinMaxMove(root);
 		info[0] = bestMove[2];
-		int [] newPos = newPosition( bestMove[2], x, y);
+		int[] newPos = newPosition( bestMove[2], x, y);
 		bestMove[0] = newPos[0];
 		bestMove[1] = newPos[1];
 		
@@ -465,156 +567,42 @@ public class MinMaxPlayer extends Player {
 		return bestMove;
 	}
 	
-	
+	//create subtree for player's available moves
 	void createMySubtree(Node root, int depth, int x, int y, int xOp, int yOp, Player opponent) {
-		Board board = root.getNodeBoard();
-		ArrayList<Integer> availableMoves = availableMoves( x, y, board);
+		ArrayList<Integer> availableMoves = availableMoves( x, y, root.getNodeBoard());
 		
 		for(int j=0; j<availableMoves.size(); j++) {
 			Board boardClone = new Board(root.getNodeBoard());
-			//copy player's weapons and score
-			Weapon bow = new Weapon(getBow());
-			Weapon pistol = new Weapon(getPistol());
-			Weapon sword = new Weapon(getSword());
-			int score = getScore();
-			
-			int[] newPos = newPosition(availableMoves.get(j), x, y);
-			x = newPos[0];
-			y = newPos[1];
-			
-			//check for weapons
-			Weapon[] weapons = boardClone.getWeapons();
-			for(int i=0; i<boardClone.getW(); i++) {
-				if(
-						(weapons[i].getX() == x) && 
-						(weapons[i].getY() == y) && 
-						(weapons[i].getPlayerId() == getId())) {
-					switch(weapons[i].getType()) {
-					case "bow":
-						bow = weapons[i];
-						break;
-					case "pistol":
-						pistol = weapons[i];
-						break;
-					case "sword":
-						sword = weapons[i];
-						break;
-					}
-					weapons[i].setX(0);
-					weapons[i].setY(0);
-					break;
-				}
-			}
-			//check for traps
-			Trap[] traps = boardClone.getTraps();
-			for(int i=0; i<boardClone.getT(); i++) {
-				if((traps[i].getX() == x) && (traps[i].getY() == y)) {
-					switch(traps[i].getType()) {
-					case "rope":
-						if(sword == null) {
-							score += traps[i].getPoints();
-							break;
-						}else {
-							traps[i].setX(0);
-							traps[i].setY(0);
-							break;
-						}
-					case "animal":
-						if(bow == null) {
-							score += traps[i].getPoints();
-							break;
-						}else {
-							traps[i].setX(0);
-							traps[i].setY(0);
-							break;
-						}
-					}
-					break;
-				}
-			}
-			//check for food
-			Food[] food = boardClone.getFood();
-			for(int i=0; i<boardClone.getF(); i++) {
-				if((food[i].getX() == x) && (food[i].getY() == y)) {
-					score += food[i].getPoints();
-					food[i].setX(0);
-					food[i].setY(0);
-					break;
-				}
-			}
 			
 			Node newNode = new Node();
 			newNode.setParent(root);
 			newNode.setNodeBoard(boardClone);
+			newNode.setNodeDepth(depth);
 			newNode.setNodeEvaluation(evaluate(availableMoves.get(j), x, y, opponent));
-			
 			ArrayList<Node> rootChildren = root.getChildren();
 			rootChildren.add(newNode);
 			
-			createOpponentSubTree(newNode, depth + 1, x, y, xOp, yOp, opponent);
-		}
-		
-	}
-	
-	
-	void createOpponentSubTree(Node parent, int depth, int x, int y, int xOp, int yOp, Player opponent) {
-		Board board = parent.getNodeBoard();
-		ArrayList<Integer> availableMoves = availableMoves( xOp, yOp, board);
-		
-		for(int j=0; j<availableMoves.size(); j++) {
-			Board boardClone = new Board(parent.getNodeBoard());
-			//copy player's weapons and score
-			Weapon bow = new Weapon(opponent.getBow());
-			Weapon pistol = new Weapon(opponent.getPistol());
-			Weapon sword = new Weapon(opponent.getSword());
-			int score = opponent.getScore();
+			int[] nodeMove = new int[3];
+			nodeMove[2] = availableMoves.get(j);
+			int[] newPos = newPosition(nodeMove[2], x, y);
+			nodeMove[0] = newPos[0];
+			nodeMove[1] = newPos[0];
 			
-			int[] newPos = newPosition(availableMoves.get(j), xOp, yOp);
-			xOp = newPos[0];
-			yOp = newPos[1];
+			newNode.setNodeMove(nodeMove);
 			
-			//check for weapons
-			Weapon[] weapons = boardClone.getWeapons();
-			for(int i=0; i<boardClone.getW(); i++) {
-				if(
-						(weapons[i].getX() == xOp) && 
-						(weapons[i].getY() == yOp) && 
-						(weapons[i].getPlayerId() == opponent.getId())) {
-					switch(weapons[i].getType()) {
-					case "bow":
-						bow = weapons[i];
-						break;
-					case "pistol":
-						pistol = weapons[i];
-						break;
-					case "sword":
-						sword = weapons[i];
-						break;
-					}
-					weapons[i].setX(0);
-					weapons[i].setY(0);
-					break;
-				}
-			}
 			//check for traps
 			Trap[] traps = boardClone.getTraps();
 			for(int i=0; i<boardClone.getT(); i++) {
-				if((traps[i].getX() == xOp) && (traps[i].getY() == yOp)) {
+				if((traps[i].getX() == nodeMove[0]) && (traps[i].getY() == nodeMove[1])) {
 					switch(traps[i].getType()) {
 					case "rope":
-						if(sword == null) {
-							score += traps[i].getPoints();
-							break;
-						}else {
+						if(getSword() != null) {
 							traps[i].setX(0);
 							traps[i].setY(0);
 							break;
 						}
 					case "animal":
-						if(bow == null) {
-							score += traps[i].getPoints();
-							break;
-						}else {
+						if(getBow() != null) {
 							traps[i].setX(0);
 							traps[i].setY(0);
 							break;
@@ -626,22 +614,37 @@ public class MinMaxPlayer extends Player {
 			//check for food
 			Food[] food = boardClone.getFood();
 			for(int i=0; i<boardClone.getF(); i++) {
-				if((food[i].getX() == xOp) && (food[i].getY() == yOp)) {
-					score += food[i].getPoints();
+				if((food[i].getX() == nodeMove[0]) && (food[i].getY() == nodeMove[1])) {
 					food[i].setX(0);
 					food[i].setY(0);
 					break;
 				}
 			}
 			
+			createOpponentSubTree(newNode, depth + 1, nodeMove[0], nodeMove[1], xOp, yOp, opponent);
+		}
+		
+	}
+	
+	//create subtree for opponent's available moves based on player's available moves
+	void createOpponentSubTree(Node parent, int depth, int x, int y, int xOp, int yOp, Player opponent) {
+		ArrayList<Integer> availableMoves = availableMoves( xOp, yOp, parent.getNodeBoard());
+		
+		for(int j=0; j<availableMoves.size(); j++) {
+			Board boardClone = new Board(parent.getNodeBoard());
+			
 			Node newNode = new Node();
 			newNode.setParent(parent);
 			newNode.setNodeBoard(boardClone);
-			newNode.setNodeEvaluation(parent.getNodeEvaluation() - evaluate(availableMoves.get(j), xOp, yOp, opponent));
+			newNode.setNodeDepth(depth);
+			newNode.setNodeEvaluation(parent.getNodeEvaluation() - evaluateOpponent(availableMoves.get(j), x, y, xOp, yOp, opponent, boardClone));
 			
-			ArrayList<Node> rootChildren = parent.getChildren();
-			rootChildren.add(newNode);
+			ArrayList<Node> parentChildren = parent.getChildren();
+			parentChildren.add(newNode);
 			
+			int[] nodeMove = new int[3];
+			nodeMove[2] = availableMoves.get(j);
+			newNode.setNodeMove(nodeMove);
 		}
 	}
 	
