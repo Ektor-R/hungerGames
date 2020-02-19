@@ -1,5 +1,11 @@
 package main;
 
+import Graphics.GUI;
+import Graphics.GUI.BoardPanel;
+import Graphics.GUI.PlayerAPanel;
+import Graphics.GUI.PlayerBPanel;
+import Graphics.GUI.RoundPanel;
+
 /*
  * 1: name: Konstantinos Gialamas, AEM: 9722, e-mail:gialamask@ece.auth.gr, phone:6987311122
  * 2: name: Ektoras-Thomas Rontos, AEM: 9477, e-mail:rontekto@ece.auth.gr, phone:6959408130
@@ -36,46 +42,16 @@ public class Game {
 		this.round=round;
 	}
 	
-	
-	//main
-	public static void main(String[] args) {
+	public static void gameplay(Board board, MinMaxPlayer minMaxPlayer, Player randomPlayer) {
 		String winner = null;
-		
-		int[][] weaponAreaLimits = {{-2, -2}, {2, -2}, {2, 2}, {-2, 2}};
-		int[][] foodAreaLimits = {{-3, -3}, {3, -3}, {3, 3}, {-3, 3}};
-		int[][] trapAreaLimits = {{-4, -4}, {4, -4}, {4, 4}, {-4 ,4}};
-		
-		//creating board
-		Board board=new Board(20, 20, 6, 10, 8);
-		board.setWeaponAreaLimits(weaponAreaLimits);
-		board.setFoodAreaLimits(foodAreaLimits);
-		board.setTrapAreaLimits(trapAreaLimits);
-		board.createBoard();
-		
-		//defining MinMax Player
-		MinMaxPlayer minMaxPlayer= new MinMaxPlayer();
-		minMaxPlayer.setId(1);
-		minMaxPlayer.setName("MinMax Player");
-		minMaxPlayer.setBoard(board);
-		minMaxPlayer.setScore(15);
-		minMaxPlayer.setX(board.getM()/2);
-		minMaxPlayer.setY(board.getN()/2);
-		
-		
-		//defining Random Player
-		Player randomPlayer=new Player();
-		randomPlayer.setId(2);
-		randomPlayer.setName("Random Player");
-		randomPlayer.setBoard(board);
-		randomPlayer.setScore(15);
-		randomPlayer.setX(board.getM()/2);
-		randomPlayer.setY(board.getN()/2);
-		
+		int minMaxScore = minMaxPlayer.getScore();
+		int randomScore = randomPlayer.getScore();
 		
 		//game
 		Game game = new Game(1);
 		do {
 			System.out.println("ROUND " + game.getRound());
+			RoundPanel.setRound(game.getRound());
 			
 			//print table
 			String[][] rep = board.getStringRepresentation(minMaxPlayer, randomPlayer);
@@ -85,9 +61,13 @@ public class Game {
 				}
 				System.out.print("\n");
 			}
+			BoardPanel.setTiles(rep);
 			
 			//player move
 			minMaxPlayer.getNextMove(minMaxPlayer.getX(), minMaxPlayer.getY(), randomPlayer.getX(), randomPlayer.getY(), randomPlayer);
+			PlayerAPanel.setPlayerATotalScore(minMaxPlayer.getScore());
+			PlayerAPanel.setPlayerAMoveScore(minMaxPlayer.getScore() - minMaxScore);
+			minMaxScore = minMaxPlayer.getScore();
 			if(minMaxPlayer.getScore() < 0) {
 				System.out.println(minMaxPlayer.getName() + " died!");
 				winner = randomPlayer.getName();
@@ -97,7 +77,11 @@ public class Game {
 				winner = minMaxPlayer.getName();
 				break;
 			}
+			
 			randomPlayer.move();
+			PlayerBPanel.setPlayerBTotalScore(randomPlayer.getScore());
+			PlayerBPanel.setPlayerBMoveScore(randomPlayer.getScore() - randomScore);
+			randomScore = randomPlayer.getScore();
 			if(randomPlayer.getScore() < 0) {
 				System.out.println(randomPlayer.getName() + " died!");
 				winner = minMaxPlayer.getName();
@@ -133,6 +117,11 @@ public class Game {
 			}
 		}
 		System.out.println("Winner: " + winner);
+	}
+	
+	//main
+	public static void main(String[] args) {
+		new GUI();
 	}
 
 }

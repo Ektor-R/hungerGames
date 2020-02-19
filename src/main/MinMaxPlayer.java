@@ -431,7 +431,7 @@ public class MinMaxPlayer extends Player {
 	}
 	
 	//MinMax Algorithm
-	int chooseMinMaxMove(Node root) {
+	public int chooseMinMaxMove(Node root) {
 		//local variables
 		ArrayList<Node> rootChildren = root.getChildren();
 		Node rootChild;
@@ -468,7 +468,7 @@ public class MinMaxPlayer extends Player {
 	}
 	
 	//moves the player
-	int[] getNextMove(int x, int y, int xOp, int yOp, Player opponent) {
+	public int[] getNextMove(int x, int y, int xOp, int yOp, Player opponent) {
 		Board board = getBoard();
 		ArrayList<Integer[]> path = getPath();
 		Integer[] info = {0 , 0, 0, 0, 0}; //0:dice 1:score 2:weapons 3:trap 4:food
@@ -568,7 +568,7 @@ public class MinMaxPlayer extends Player {
 	}
 	
 	//create subtree for player's available moves
-	void createMySubtree(Node root, int depth, int x, int y, int xOp, int yOp, Player opponent) {
+	public void createMySubtree(Node root, int depth, int x, int y, int xOp, int yOp, Player opponent) {
 		ArrayList<Integer> availableMoves = availableMoves( x, y, root.getNodeBoard());
 		
 		for(int j=0; j<availableMoves.size(); j++) {
@@ -627,7 +627,7 @@ public class MinMaxPlayer extends Player {
 	}
 	
 	//create subtree for opponent's available moves based on player's available moves
-	void createOpponentSubTree(Node parent, int depth, int x, int y, int xOp, int yOp, Player opponent) {
+	public void createOpponentSubTree(Node parent, int depth, int x, int y, int xOp, int yOp, Player opponent) {
 		ArrayList<Integer> availableMoves = availableMoves( xOp, yOp, parent.getNodeBoard());
 		
 		for(int j=0; j<availableMoves.size(); j++) {
